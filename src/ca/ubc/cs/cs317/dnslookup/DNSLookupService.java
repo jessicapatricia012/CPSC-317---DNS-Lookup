@@ -142,6 +142,8 @@ public class DNSLookupService {
     public DNSMessage buildQuery(DNSQuestion question) {
         short transactionID = (short) random.nextInt(Short.MAX_VALUE); // random transaction id
         DNSMessage message = new DNSMessage(transactionID);
+
+        // DNS Headers
         message.setQR(false); // 0 indicating it's a query
         message.setOpcode(0); // standard query
         message.setAA(false); // not a response
@@ -149,7 +151,13 @@ public class DNSLookupService {
         message.setRD(false);  // not recursive
         message.setRA(false);
         message.setRcode(0);
-        message.setQDCount(1); // one question
+        message.setQDCount(0); // +1 in addQuestion()
+        message.setANCount(0);
+        message.setNSCount(0);
+        message.setARCount(0);
+
+        // DNS Questions
+        message.addQuestion(question);
 
         return message;
     }
@@ -168,8 +176,23 @@ public class DNSLookupService {
      * @throws DNSErrorException if the Rcode value in the reply header is non-zero
      */
     public Set<ResourceRecord> processResponse(DNSMessage message) throws DNSErrorException {
-        /* TODO: To be implemented by the student */
-        return null;
+        if (message == null || message.getRcode() != 0) {
+            throw new DNSErrorException("Rcode should be zero");
+
+        }
+        Set<ResourceRecord> resourceRecords = new HashSet<>();
+
+        int totalRR = message.getANCount() + message.getNSCount() + message.getARCount();
+        for (int i = 0; i < totalRR; i++) {
+            resourceRecords.add(message.getRR());
+        }
+
+        // adds all resource records found in the response message to the cache.
+        for (ResourceRecord record : resourceRecords) {
+            cache.addResult((CommonResourceRecord) record);
+        }
+
+        return resourceRecords;
     }
 
     public static class DNSErrorException extends Exception {
