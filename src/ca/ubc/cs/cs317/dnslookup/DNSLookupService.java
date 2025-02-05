@@ -140,8 +140,18 @@ public class DNSLookupService {
      * @return The DNSMessage containing the query.
      */
     public DNSMessage buildQuery(DNSQuestion question) {
-        /* TODO: To be implemented by the student */
-        return new DNSMessage((short)23);
+        short transactionID = (short) random.nextInt(Short.MAX_VALUE); // random transaction id
+        DNSMessage message = new DNSMessage(transactionID);
+        message.setQR(false); // 0 indicating it's a query
+        message.setOpcode(0); // standard query
+        message.setAA(false); // not a response
+        message.setTC(false); // no truncation 
+        message.setRD(false);  // not recursive
+        message.setRA(false);
+        message.setRcode(0);
+        message.setQDCount(1); // one question
+
+        return message;
     }
 
     /**
